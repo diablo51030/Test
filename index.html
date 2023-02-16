@@ -5,8 +5,110 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style>
+        dialog{
+        border: none;
+        box-shadow: 0 2px 6px #ccc;
+        border-radius: 10px;
+        }
+        dialog::backdrop {
+        background-color: rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
 <body>
-    
+    <!-- 燈箱倒數 -->
+    <dialog id="infoModal">
+    <p>距離2023-02-28還有</p>
+    <p>{{ `${day}天 ${hr}小時 ${min}分鐘 ${sec}秒鐘` }}</p>
+    <button id="close" @click="close">close</button>
+    </dialog>
+
+    <!-- API串接 -->
+    <div id="api">
+        <div v-for="(item,index) in abouts">
+            <h4>筆數{{index+1}}</h4>
+            <div>a.交易對 : {{item.pair}}</div>
+            <div>b.標記價格 : {{item.markPrice}}</div>
+            <div>c.指數價格 : {{item.indexPrice}}</div>
+            <div>d.下次資金費率結算時間 : {{item.nextFundingTime}}</div>
+            <div>_______________________________________________</div>
+        </div>
+    </div>
+
+    <script src="vue.global.js"></script>
+    <script src="axios.min.js"></script>
+    <script>
+        let btn=document.querySelector("#show");
+        let infoModal=document.querySelector("#infoModal");
+        infoModal.showModal();
+    </script>
+    <script>
+        const countDown = Vue.createApp({
+            data() {
+                return{
+                    day:0,
+                    hr:0,
+                    min:0,
+                    sec:0
+                }
+            },
+            methods:{
+                close(){
+                    let close=document.querySelector("#close");
+                    close.addEventListener("click", function(){
+                        infoModal.style.display="none";
+                    })
+                },
+                countdown(){
+                    const end = Date.parse(new Date('2023-02-28'))
+                    const now = Date.parse(new Date())
+                    const msec = end - now
+                    let day = parseInt(msec / 1000 / 60 / 60 / 24)
+                    let hr = parseInt(msec / 1000 / 60 / 60 % 24)
+                    let min = parseInt(msec / 1000 / 60 % 60)
+                    let sec = parseInt(msec / 1000 % 60)
+                    this.day = day
+                    this.hr = hr
+                    this.min = min
+                    this.sec = sec
+                    const that = this
+                    setTimeout(function () {
+                    that.countdown()
+                    }, 1000)
+                }
+            },
+            mounted() {
+                this.countdown();
+            }
+        }).mount("#infoModal");
+
+        const api = Vue.createApp({
+            data() {
+                return{
+                    abouts: []
+                }
+            },
+            methods:{
+                getData(){
+                    axios.get("https://testnet.binancefuture.com/dapi/v1/premiumIndex")
+                    .then(res => {
+                    this.abouts = [...res.data];
+                    console.log(this.abouts)
+                    }).catch(err => {
+                    console.log(err);
+                    });
+                }
+            },
+            mounted(){
+                this.getData();
+            }
+
+        }).mount("#api")
+
+    </script>
+    <script>
+
+    </script>
 </body>
 </html>
